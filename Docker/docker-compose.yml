@@ -1,0 +1,50 @@
+version: "3.7"
+services:
+    db:
+        #build:
+        #    context: .
+        #    dockerfile: Dockerfile
+        image: mariadb:10.4
+        container_name: maria_container
+        environment:
+            MARIADB_ROOT_PASSWORD: totallysecurepassword
+        volumes:
+            - ./mdbdata:/var/lib/mysql
+            - ./volumes:/volumes
+        networks:
+            net-172.19.50.0:
+                ipv4_address: 172.19.50.2
+                #ports:
+                #    - '5432:3306'
+    pmp:
+        container_name: phpmyadmin_container
+        image: phpmyadmin/phpmyadmin:latest
+        ports: 
+        - '8081:80'
+        networks:
+            net-172.19.50.0:
+                ipv4_address: 172.19.50.3
+
+    py:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: python_container
+        tty:
+            true
+        dns:
+            - '8.8.8.8'
+        networks:
+            net-172.19.50.0:
+                ipv4_address: 172.19.50.4
+        volumes: 
+            - ./volumes:/volumes
+
+        
+
+networks:
+    net-172.19.50.0:
+        name: net-172.19.50.0
+        ipam:
+            config:
+                - subnet: 172.19.50.0/24
