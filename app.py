@@ -6,6 +6,8 @@ import pandas as pd
 conn = sqlite3.connect('data.db', check_same_thread=False)
 c = conn.cursor()
 
+# Initializing global vars
+
 
 def create_usertable():
     c.execute('CREATE TABLE IF NOT EXISTS usertable(username TEXT, password TEXT)')
@@ -29,7 +31,8 @@ def clear_data():
     c.execute('DROP TABLE usertable')
 
 def logged_in():
-    task = st.selectbox("Task", ["Analytics", "Profile","Form"])
+    task = st.empty()
+    task.selectbox("Task", ["Analytics", "Profile","Form"])
     user_result = view_all_users()
     clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
     st.dataframe(clean_db)
@@ -41,40 +44,91 @@ def logged_in():
     elif task == "Form":
         st.subheader("Fill in the form")
 
-def check_password():
-    """Returns `True` if the user had a correct password."""
+    if (st.button("Log Out")):
+        logout()
+        task = st.empty()
+        st.experimental_rerun()
 
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if (login_user(st.session_state["username"], st.session_state["password"])):
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # don't store username + password
-            del st.session_state["username"]
-        else:
-            st.session_state["password_correct"] = False
+def logout():
+    del st.session_state['password_correct']
+    del st.session_state['logged']
 
-    if "password_correct" not in st.session_state:
-        # First run, show inputs for username + password.
-        st.text_input("Username", on_change=password_entered, key="username")
-        st.text_input("Password", type="password", on_change=password_entered, key="password")
-        return False
+def login_attempt():
+    st.session_state['login_attempt'] = True
 
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input("Username", on_change=password_entered, key="username")
-        st.text_input("Password", type="password", on_change=password_entered, key="password")
-        st.error("User not known or password incorrect")
-        user_result = view_all_users()
-        clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
-        st.dataframe(clean_db)
-        return False
+def password_entered():
+    """Checks whether a password entered by the user is correct."""
+        
+    if (login_user(st.session_state["username"], st.session_state["password"])):
+        st.session_state["password_correct"] = True
+        del st.session_state["password"]  # don't store username + password
+        del st.session_state["username"]
     else:
-        # Password correct.
-        return True
+        st.session_state["password_correct"] = False
+
+
+#def check_password():
+
+##def check_password():
+##    """Returns `True` if the user had a correct password."""
+##
+##    def password_entered():
+##        """Checks whether a password entered by the user is correct."""
+##        if (login_user(st.session_state["username"], st.session_state["password"])):
+##            st.session_state["password_correct"] = True
+##            del st.session_state["password"]  # don't store username + password
+##            del st.session_state["username"]
+##        else:
+##            st.session_state["password_correct"] = False
+##
+##    if "password_correct" not in st.session_state:
+##        # First run, show inputs for username + password.
+##        st.text_input("Username", key="username")
+##        st.text_input("Password", type="password", key="password")
+##        if (st.button("Log in", key="login_button")):
+##            password_entered()
+##        return False
+##
+##    if not st.session_state["password_correct"]:
+##        # Password not correct, show input + error.
+##        st.text_input("Username", key="username")
+##        st.text_input("Password", type="password", key="password")
+##        if (st.button("Log in", key="login_button")):
+##            password_entered()
+##        st.error("User not known or password incorrect")
+##        user_result = view_all_users()
+##        clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
+##        st.dataframe(clean_db)
+##
+##    else:
+##        # Password correct.
+##        return True
 
 
 def main():
-    if (check_password()):
+    if ("logged" not in st.session_state):
+        st.session_state['logged'] = False
+    if (not st.session_state['logged']):
+        user = st.empty()
+        user.text_input("Username", key="username") 
+        password = st.empty()
+        password.text_input("Password", type="password", key="password")
+        loginbutton = st.empty()
+        loginbutton.button("Log In", key="login_button", on_click=login_attempt)
+        if ('login_attempt' in st.session_state):
+            password_entered()
+            if (st.session_state['password_correct']):
+                st.session_state['logged'] = True
+                password.empty()
+                user.empty()
+                loginbutton.empty()
+            else:
+                st.error("User not known or password incorrect")
+                user_result = view_all_users()
+                clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
+                st.dataframe(clean_db)
+            del st.session_state['login_attempt']
+    if (st.session_state['logged'] == True):
         logged_in()
 
 
