@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+from analytics import *
 
 #Dtabase Management
 conn = sqlite3.connect('data.db', check_same_thread=False)
@@ -36,7 +37,15 @@ def logged_in():
     user_result = view_all_users()
     clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
     st.dataframe(clean_db)
-
+    data = file_input()
+    if task == "Profile":
+        st.subheader("User Profiles")
+    elif task == "Analytics":
+        st.subheader("Analytics")
+        try:
+            plots(data)
+        except:
+            pass
     if task == "Analytics":
         st.subheader("Analytics")
     elif task == "Profile":
