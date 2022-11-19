@@ -33,29 +33,21 @@ def clear_data():
 
 def logged_in():
     task = st.empty()
-    task.selectbox("Task", ["Analytics", "Profile","Form"])
+    task.selectbox("Task", ["Analytics", "Form"], key="task")
     user_result = view_all_users()
     clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
     st.dataframe(clean_db)
-    data = file_input()
-    if task == "Profile":
-        st.subheader("User Profiles")
-    elif task == "Analytics":
+    if st.session_state['task'] == "Analytics":
         st.subheader("Analytics")
+        data = file_input()
         try:
             plots(data)
         except:
             pass
-    if task == "Analytics":
-        st.subheader("Analytics")
-    elif task == "Profile":
-        st.subheader("User Profiles")
-    elif task == "Form":
-        st.subheader("Fill in the form")
 
     if (st.button("Log Out")):
         logout()
-        task = st.empty()
+        st.session_state['task'] = st.empty()
         st.experimental_rerun()
 
 def logout():
