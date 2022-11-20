@@ -5,20 +5,31 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
 import warnings
+from sklearn import preprocessing
+from IPython.display import Image
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, roc_auc_score
+from subprocess import call
+from IPython.display import Image 
+import pickle
+from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
 #%matplotlib inline 
 #%config InlineBackend.figure_format = 'retina' 
 pd.set_option('display.max_columns', None) 
 warnings.filterwarnings('ignore')
 
-df = pd.read_csv("./attrition_data.csv")
-st.write(df.shape)
+
+data = pd.read_csv("./test_data.csv")
+df = data
 st.dataframe(df.head())
 
-st.write("By overview of data set, it can be found that this data set include 1470 observations and 35 features. But feature 'Over18', 'EmployeeCount' and 'StandardHours' are exactly same in every rows and 'EmployeeNumber' is the number that tag employees so we decide to drop these columns.")
+st.write("""By overview of data set, it can be found that this data set includes {} observations and {} features.\n 
+But features 'Over18', 'EmployeeCount' and 'StandardHours' are exactly same in every rows and 'EmployeeNumber' is the number that tag employees so we decide to drop these columns.""".format(df.shape[0],df.shape[1]))
 
 df = df.drop(columns=['Over18', 'EmployeeCount', 'StandardHours', 'EmployeeNumber'])
 
-st.write("Converting some categorical data to numeric labels")
+st.write("Next, we move on to converting some categorical data to numeric by encoding the labels")
 
 education_map = {1: 'Below College', 2: 'College', 3: 'Bachelor', 4: 'Master', 5: 'Doctor'}
 education_satisfaction_map = {1: 'Low', 2:'Medium', 3:'High', 4:'Very High'}
@@ -45,10 +56,8 @@ st.write("The dataset is found to have no missing values")
 st.write("Preprocessing -")
 #------------------
 
-from sklearn import preprocessing
-from IPython.display import Image
 st.write("Reload the data")
-df = pd.read_csv("./attrition_data.csv")
+df = data
 df = df.drop(columns=['Over18', 'EmployeeCount', 'StandardHours', 'EmployeeNumber'])
 
 for cate_features in df.select_dtypes(include='object').columns:
@@ -83,11 +92,6 @@ st.dataframe(df.head())
 
 st.write("split the data set into training set and test set with ratio 8:2")
 
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, roc_auc_score
-from subprocess import call
-from IPython.display import Image 
-
 def my_confusion_matrix(test, test_pred):
     cf = pd.DataFrame(confusion_matrix(test, test_pred), 
                       columns=['Predicted No', 'Predicted Yes'], 
@@ -111,10 +115,8 @@ def plot_roc_curve(model, y, x):
     plt.title('Receiver Operating Characteristic')
     plt.legend(loc="lower right")
 
-st.write("Decision Tree")
+#st.write("Decision Tree")
 
-from sklearn import tree
-from sklearn.tree import DecisionTreeClassifier
 
 X = df.drop(columns=['Attrition'])
 y = df['Attrition']
@@ -136,9 +138,9 @@ tree1_clf = DecisionTreeClassifier(random_state=0, **tree1_grid.best_params_)
 tree1_clf.fit(X_train, y_train)
 tree.export_graphviz(tree1_clf, out_file='tree1.dot', special_characters=True, rounded = True, filled= True,
                      feature_names=X.columns, class_names=['Yes', 'No'])
-call(['dot', '-T', 'png', 'tree1.dot', '-o', 'tree1.png'])
+call(['dot', '-T', 'png', 'tree1.dot', '-o', 'tree1.png'], shell = True)
 
-st.image("tree1.png")
+# st.image("tree1.png")
 
 y_test_pred_tree1 = tree1_clf.predict(X_test)
 my_confusion_matrix(y_test, y_test_pred_tree1) # Defined before
@@ -167,17 +169,10 @@ m = tree1_grid.best_estimator_
 filename = './decisiontree1.pkl'
 pickle.dump(m, open(filename, 'wb'))
 
-m
 
 test = pd.read_csv("./test_data.csv")
-test.head()
-st.dataframe(test)
 
 dt = open('./decisiontree1.pkl', "rb")
-dt
 
 m = pickle.load(dt)
-m
-
-X_test
 

@@ -2,6 +2,7 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 from analytics import *
+from inference import *
 
 #Dtabase Management
 conn = sqlite3.connect('data.db', check_same_thread=False)
@@ -33,15 +34,21 @@ def clear_data():
 
 def logged_in():
     task = st.empty()
-    task.selectbox("Task", ["Analytics", "Form"], key="task")
+    task.selectbox("Task", ["Analytics", "Inferences"], key="task")
     user_result = view_all_users()
     clean_db = pd.DataFrame(user_result, columns = ['Username', 'Password'])
     st.dataframe(clean_db)
+    data = file_input()
     if st.session_state['task'] == "Analytics":
         st.subheader("Analytics")
-        data = file_input()
         try:
             plots(data)
+        except:
+            pass
+    elif st.session_state['task'] == "Inferences":
+        st.subheader("Inferences")
+        try:
+            dt(data)
         except:
             pass
 
