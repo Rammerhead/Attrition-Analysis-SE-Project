@@ -24,8 +24,7 @@ def dt(data):
     df = data
     st.dataframe(df.head())
 
-    st.write("""By overview of data set, it can be found that this data set includes {} observations and {} features.\n 
-    But features 'Over18', 'EmployeeCount' and 'StandardHours' are exactly same in every rows and 'EmployeeNumber' is the number that tag employees so we decide to drop these columns.""".format(df.shape[0],df.shape[1]))
+    st.write("By overview of data set, it can be found that this data set includes {} observations and {} features. But features 'Over18', 'EmployeeCount' and 'StandardHours' are exactly same in every rows and 'EmployeeNumber' is the number that tag employees so we decide to drop these columns.".format(df.shape[0],df.shape[1]))
 
     df = df.drop(columns=['Over18', 'EmployeeCount', 'StandardHours', 'EmployeeNumber'])
 
